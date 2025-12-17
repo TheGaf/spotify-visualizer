@@ -1,7 +1,7 @@
 // UI State Management
 let pollInterval = null;
 let currentTrackId = null;
-let artistImageCache = new Map();
+let artistImageCache = new Map(); // Caches artist ID -> image URL
 
 // DOM Elements
 const screens = {
@@ -160,8 +160,8 @@ function updateUI(data) {
       elements.albumArt.src = albumImage;
     }
     
-    // Update artist wall
-    updateArtistWall(track.artists);
+    // Update artist wall with album art URL
+    updateArtistWall(track.artists, albumImage);
   }
   
   // Always update progress
@@ -176,15 +176,37 @@ function updateProgress(currentMs, totalMs) {
   elements.totalTime.textContent = formatTime(totalMs);
 }
 
+// Generate deterministic color from string
+function stringToColor(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue1 = Math.abs(hash % 360);
+  const hue2 = Math.abs((hash * 137) % 360); // Use golden ratio for good color spread
+  return { hue1, hue2 };
+}
+
 // Update artist wall with photos
-async function updateArtistWall(artists) {
+async function updateArtistWall(artists, albumArtUrl) {
   elements.artistWall.innerHTML = '';
   
   const images = [];
+  const seenArtists = new Set();
   
   // Fetch artist images
   for (const artist of artists) {
+    if (seenArtists.has(artist.id)) continue;
+    seenArtists.add(artist.id);
+    
     try {
+      // Check cache first
+      if (artistImageCache.has(artist.id)) {
+        const imageUrl = artistImageCache.get(artist.id);
+        images.push({ url: imageUrl, type: 'image', name: artist.name });
+        continue;
+      }
+      
       const response = await chrome.runtime.sendMessage({
         action: 'getArtist',
         artistId: artist.id
@@ -192,10 +214,8 @@ async function updateArtistWall(artists) {
       
       if (response.data && response.data.images && response.data.images.length > 0) {
         const imageUrl = response.data.images[0].url;
-        if (!artistImageCache.has(imageUrl)) {
-          images.push({ url: imageUrl, type: 'image', name: artist.name });
-          artistImageCache.set(imageUrl, true);
-        }
+        artistImageCache.set(artist.id, imageUrl);
+        images.push({ url: imageUrl, type: 'image', name: artist.name });
       }
     } catch (error) {
       console.error('Failed to fetch artist:', error);
@@ -213,13 +233,13 @@ async function updateArtistWall(artists) {
       if (response.data && response.data.artists) {
         for (const relatedArtist of response.data.artists) {
           if (images.length >= 9) break;
+          if (seenArtists.has(relatedArtist.id)) continue;
+          seenArtists.add(relatedArtist.id);
           
           if (relatedArtist.images && relatedArtist.images.length > 0) {
             const imageUrl = relatedArtist.images[0].url;
-            if (!artistImageCache.has(imageUrl)) {
-              images.push({ url: imageUrl, type: 'image', name: relatedArtist.name });
-              artistImageCache.set(imageUrl, true);
-            }
+            artistImageCache.set(relatedArtist.id, imageUrl);
+            images.push({ url: imageUrl, type: 'image', name: relatedArtist.name });
           }
         }
       }
@@ -229,7 +249,6 @@ async function updateArtistWall(artists) {
   }
   
   // Fill remaining slots with fallback
-  const albumArtUrl = elements.albumArt.src;
   while (images.length < 9) {
     if (albumArtUrl && images.length % 2 === 0) {
       // Use blurred album art
@@ -261,9 +280,11 @@ async function updateArtistWall(artists) {
       tile.style.filter = 'blur(8px)';
       tile.style.opacity = '0.6';
     } else if (imageData.type === 'gradient') {
+      // Use deterministic colors based on artist name
+      const colors = stringToColor(imageData.name);
       tile.style.background = `linear-gradient(135deg, 
-        hsl(${Math.random() * 360}, 70%, 50%), 
-        hsl(${Math.random() * 360}, 70%, 30%))`;
+        hsl(${colors.hue1}, 70%, 50%), 
+        hsl(${colors.hue2}, 70%, 30%))`;
       tile.textContent = imageData.initials;
       tile.style.display = 'flex';
       tile.style.alignItems = 'center';
