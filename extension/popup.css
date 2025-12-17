@@ -1,0 +1,211 @@
+/* Minimal fallback styles that don't conflict with Gaf branding */
+
+body {
+  width: 400px;
+  min-height: 500px;
+  margin: 0;
+  padding: 20px;
+  overflow-x: hidden;
+}
+
+#app {
+  width: 100%;
+}
+
+.screen {
+  text-align: center;
+}
+
+/* Auth Screen */
+#auth-screen h1 {
+  margin-bottom: 15px;
+  font-size: 24px;
+}
+
+#auth-screen p {
+  margin-bottom: 20px;
+  opacity: 0.9;
+}
+
+#auth-button {
+  background: #1DB954;
+  color: white;
+  font-weight: 600;
+  padding: 12px 30px;
+  margin-top: 10px;
+}
+
+#auth-button:hover {
+  background: #1ed760;
+}
+
+/* Loading Screen */
+#loading-screen h2 {
+  font-size: 20px;
+  margin-top: 40px;
+}
+
+/* Player Screen */
+#player-screen {
+  text-align: left;
+}
+
+.notice {
+  background: rgba(255, 193, 7, 0.2);
+  border: 1px solid rgba(255, 193, 7, 0.5);
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+/* Idle State */
+.idle-state {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.idle-state h2 {
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.idle-state p {
+  opacity: 0.8;
+}
+
+/* Artist Wall Container */
+.artist-wall-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.artist-wall {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 2px;
+  width: 100%;
+  height: 100%;
+}
+
+.artist-tile {
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.artist-tile:hover {
+  transform: scale(1.05);
+  z-index: 1;
+}
+
+/* Album Art Overlay */
+.album-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60%;
+  height: 60%;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+#album-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Track Info */
+.track-info {
+  margin-bottom: 20px;
+}
+
+.track-info h2 {
+  font-size: 20px;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.track-info h3 {
+  font-size: 16px;
+  margin-bottom: 5px;
+  opacity: 0.9;
+  font-weight: 600;
+}
+
+.track-info p {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+/* Progress Bar */
+.progress-container {
+  margin-bottom: 20px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #1DB954;
+  transition: width 0.5s linear;
+}
+
+.progress-time {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* Logout Button */
+.logout-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.logout-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Error Screen */
+#error-screen h2 {
+  font-size: 22px;
+  margin-bottom: 15px;
+  color: #ff6b6b;
+}
+
+#error-message {
+  margin-bottom: 20px;
+  opacity: 0.8;
+}
+
+#retry-button {
+  background: #4a90e2;
+  color: white;
+  font-weight: 600;
+}
+
+#retry-button:hover {
+  background: #357abd;
+}
