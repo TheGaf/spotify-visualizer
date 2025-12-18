@@ -145,47 +145,40 @@ body.fullscreen-mode {
   box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
 }
 
-@keyframes floatInOut {
+/* Continuous cycling animation - fade in, stay, fade out, reposition */
+@keyframes fadeInOutCycle {
   0% {
     opacity: 0;
-    transform: translate(0, 0) scale(0.8);
+    transform: scale(0.9);
   }
   20% {
-    opacity: 0.6;
-    transform: translate(0, 0) scale(1);
+    opacity: 0.7;
+    transform: scale(1);
   }
   80% {
-    opacity: 0.6;
-    transform: translate(0, 0) scale(1);
+    opacity: 0.7;
+    transform: scale(1);
   }
   100% {
     opacity: 0;
-    transform: translate(0, 0) scale(0.8);
+    transform: scale(0.9);
   }
 }
 
-/* Player Container - Translucent black box */
-.player-container {
-  position: relative;
-  z-index: 10;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 30px;
-  max-width: 450px;
-  margin: 0 auto;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+.artist-tile {
+  animation: fadeInOutCycle 10s ease-in-out infinite;
 }
 
-/* Album Art Overlay - Smaller and inside container */
+/* Album Art Overlay - Centered, no container box */
 .album-overlay {
   position: relative;
+  z-index: 10;
   width: 280px;
   height: 280px;
   margin: 0 auto 20px auto;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.8);
 }
 
 #album-art {
@@ -194,16 +187,22 @@ body.fullscreen-mode {
   object-fit: cover;
 }
 
-/* Track Info - More compact */
+/* Track Info - Floating transparent with shadows for contrast */
 .track-info {
+  position: relative;
+  z-index: 10;
   margin-bottom: 15px;
   text-align: center;
+  max-width: 450px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .track-info h2 {
   font-size: 20px;
   margin-bottom: 6px;
   font-weight: 700;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 0, 0, 0.7);
 }
 
 .track-info h3 {
@@ -211,14 +210,23 @@ body.fullscreen-mode {
   margin-bottom: 4px;
   opacity: 0.9;
   font-weight: 600;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 0, 0, 0.7);
 }
 
 .track-info p {
   font-size: 13px;
   opacity: 0.7;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
 }
 
-/* Progress Bar */
+/* Progress Bar - Transparent floating */
+.progress-container {
+  position: relative;
+  z-index: 10;
+  max-width: 450px;
+  margin: 0 auto 15px auto;
+}
+
 .progress-bar {
   width: 100%;
   height: 6px;
@@ -226,12 +234,14 @@ body.fullscreen-mode {
   border-radius: 3px;
   overflow: hidden;
   margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .progress-fill {
   height: 100%;
   background: #1DB954;
   transition: width 0.5s linear;
+  box-shadow: 0 0 10px rgba(29, 185, 84, 0.5);
 }
 
 .progress-time {
@@ -239,15 +249,18 @@ body.fullscreen-mode {
   justify-content: space-between;
   font-size: 12px;
   opacity: 0.7;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
 }
 
-/* Playback Controls - More compact */
+/* Playback Controls - Floating transparent */
 .playback-controls {
+  position: relative;
+  z-index: 10;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 15px;
-  margin-top: 15px;
+  margin: 15px auto;
 }
 
 .control-btn {
@@ -286,15 +299,16 @@ body.fullscreen-mode {
   transform: scale(0.95);
 }
 
-/* Visualization Mode Controls */
+/* Visualization Mode Controls - Floating transparent */
 .viz-controls {
+  position: relative;
+  z-index: 10;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 10px;
-  margin-top: 15px;
+  margin: 15px auto;
   padding-top: 15px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .viz-btn {
@@ -407,14 +421,13 @@ body.fullscreen-mode {
     font-size: 24px;
   }
   
-  .player-container {
-    padding: 25px;
-    max-width: 90%;
-  }
-  
   .album-overlay {
     width: 240px;
     height: 240px;
+  }
+  
+  .track-info {
+    max-width: 90%;
   }
   
   .track-info h2 {
@@ -428,12 +441,13 @@ body.fullscreen-mode {
   .track-info p {
     font-size: 12px;
   }
+  
+  .progress-container {
+    max-width: 90%;
+  }
 }
 
 @media (max-width: 480px) {
-  .player-container {
-    padding: 20px;
-  }
   
   .album-overlay {
     width: 200px;
@@ -537,6 +551,18 @@ body.fullscreen-mode {
   height: 28px;
   width: auto;
   display: block;
+}
+
+.branding-divider {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 16px;
+  font-weight: 300;
+}
+
+.spotify-logo {
+  height: 26px;
+  width: 26px;
+  flex-shrink: 0;
 }
 
 .branding-text {

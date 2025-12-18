@@ -16,6 +16,8 @@ let currentTrackId = null;
 let artistImageCache = new Map();
 let currentBPM = 120; // Default BPM
 let bpmInterval = null;
+let currentAudioFeatures = null; // Store energy, valence for colors
+let animationFrameId = null;
 
 // DOM Elements
 const screens = {
@@ -56,7 +58,7 @@ const elements = {
 };
 
 // ===== State Management =====
-let visualizationMode = 'albums'; // 'albums', 'canvas', or 'geometric'
+let visualizationMode = 'albums'; // 'albums', 'canvas', or 'waveform'
 
 // ===== PKCE Helper Functions =====
 
@@ -380,8 +382,8 @@ function stringToColor(str) {
   return { hue1, hue2 };
 }
 
-// BPM-synced geometric pattern animation
-function startGeometricPattern(bpm) {
+// BPM-synced sonic waveform visualizer
+function startSonicWaveform(bpm, audioFeatures) {
   const canvas = elements.geometricCanvas;
   const ctx = canvas.getContext('2d');
   
@@ -393,59 +395,74 @@ function startGeometricPattern(bpm) {
   let startTime = Date.now();
   let frame = 0;
   
-  function drawPattern() {
+  // Use audio features for color
+  const energy = audioFeatures?.energy || 0.5;
+  const valence = audioFeatures?.valence || 0.5;
+  const baseHue = (valence * 120) + 180; // 180-300 (cyan to purple)
+  const barCount = 64;
+  
+  function drawWaveform() {
+    if (visualizationMode !== 'waveform') {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+      return;
+    }
+    
     const elapsed = Date.now() - startTime;
     const beatProgress = (elapsed % beatDuration) / beatDuration;
+    const beatPulse = Math.sin(beatProgress * Math.PI * 2) * 0.5 + 0.5;
     
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Clear canvas with slight trail effect
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Draw pulsing circles
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
+    const barWidth = canvas.width / barCount;
+    const maxHeight = canvas.height * 0.8;
     
-    for (let i = 0; i < 5; i++) {
-      const radius = (100 + i * 80) * (1 + beatProgress * 0.3);
-      const opacity = (1 - beatProgress) * (0.3 - i * 0.05);
+    // Draw frequency bars
+    for (let i = 0; i < barCount; i++) {
+      // Create wave pattern with multiple frequencies
+      const normalizedPosition = i / barCount;
+      const wave1 = Math.sin((frame * 0.02) + (i * 0.1)) * 0.5 + 0.5;
+      const wave2 = Math.sin((frame * 0.03) + (i * 0.15) + beatProgress * Math.PI * 2) * 0.5 + 0.5;
+      const wave3 = Math.sin((frame * 0.01) + (i * 0.05)) * 0.5 + 0.5;
       
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-      ctx.strokeStyle = `hsla(${180 + i * 30}, 70%, 50%, ${opacity})`;
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      // Combine waves with beat pulse
+      const combinedWave = (wave1 * 0.4 + wave2 * 0.4 + wave3 * 0.2) * (0.7 + beatPulse * 0.3 * energy);
+      const barHeight = combinedWave * maxHeight;
+      
+      const x = i * barWidth;
+      const y = canvas.height - barHeight;
+      
+      // Dynamic color based on position and audio features
+      const hue = (baseHue + (normalizedPosition * 60) + (frame * 0.5)) % 360;
+      const saturation = 60 + (energy * 30);
+      const lightness = 40 + (combinedWave * 20);
+      
+      // Create gradient for each bar
+      const gradient = ctx.createLinearGradient(x, y, x, canvas.height);
+      gradient.addColorStop(0, `hsla(${hue}, ${saturation}%, ${lightness + 20}%, 0.9)`);
+      gradient.addColorStop(1, `hsla(${hue}, ${saturation}%, ${lightness}%, 0.3)`);
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(x, y, barWidth - 2, barHeight);
+      
+      // Add glow effect on peaks
+      if (combinedWave > 0.7) {
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = `hsla(${hue}, ${saturation}%, ${lightness}%, 0.8)`;
+        ctx.fillRect(x, y, barWidth - 2, 3);
+        ctx.shadowBlur = 0;
+      }
     }
-    
-    // Draw rotating fractals
-    ctx.save();
-    ctx.translate(centerX, centerY);
-    ctx.rotate(frame * 0.01);
-    
-    for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI * 2 * i) / 6;
-      const x = Math.cos(angle) * 200;
-      const y = Math.sin(angle) * 200;
-      
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(x, y);
-      ctx.strokeStyle = `hsla(${200 + i * 40}, 70%, 50%, ${0.4 - beatProgress * 0.2})`;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      
-      // Add circle at end
-      ctx.beginPath();
-      ctx.arc(x, y, 10 + beatProgress * 20, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${200 + i * 40}, 70%, 50%, ${0.6 - beatProgress * 0.3})`;
-      ctx.fill();
-    }
-    
-    ctx.restore();
     
     frame++;
-    requestAnimationFrame(drawPattern);
+    animationFrameId = requestAnimationFrame(drawWaveform);
   }
   
-  drawPattern();
+  drawWaveform();
   
   // Handle window resize
   window.addEventListener('resize', () => {
@@ -454,18 +471,23 @@ function startGeometricPattern(bpm) {
   });
 }
 
-function stopGeometricPattern() {
+function stopSonicWaveform() {
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+  }
   const canvas = elements.geometricCanvas;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 async function fetchAndSetupVisualization(trackId, artists, albumImage) {
-  // Fetch BPM
+  // Fetch BPM and audio features
   try {
     const audioFeatures = await getAudioFeatures(trackId);
     if (audioFeatures.data && audioFeatures.data.tempo) {
       currentBPM = audioFeatures.data.tempo;
+      currentAudioFeatures = audioFeatures.data;
     }
   } catch (error) {
     console.error('Failed to fetch audio features:', error);
@@ -639,25 +661,22 @@ async function updateArtistWall(artists, albumArtUrl) {
     images.push({ url: albumArtUrl, type: 'blur', name: '' });
   }
   
-  // Create floating artist images at random positions
+  // Create floating artist images at random positions with continuous cycling
   images.slice(0, 15).forEach((imageData, index) => {
     const tile = document.createElement('div');
     tile.className = 'artist-tile';
+    tile.dataset.imageUrl = imageData.url;
+    tile.dataset.imageType = imageData.type;
+    tile.dataset.imageName = imageData.name || '';
     
-    // Random position across the screen (can go off-screen)
-    const randomX = Math.random() * 120 - 10; // -10% to 110% of screen width
-    const randomY = Math.random() * 120 - 10; // -10% to 110% of screen height
-    const randomSize = Math.random() * 180 + 120; // 120-300px (larger)
-    const randomDelay = Math.random() * 8; // 0-8s delay
-    const randomDuration = Math.random() * 4 + 6; // 6-10s duration
+    // Set initial random position and size
+    repositionTile(tile);
     
-    tile.style.left = `${randomX}%`;
-    tile.style.top = `${randomY}%`;
-    tile.style.width = `${randomSize}px`;
-    tile.style.height = `${randomSize}px`;
+    // Random initial delay before first cycle
+    const randomDelay = Math.random() * 5;
     tile.style.animationDelay = `${randomDelay}s`;
-    tile.style.animationDuration = `${randomDuration}s`;
     
+    // Set image
     if (imageData.type === 'image' || imageData.type === 'album') {
       tile.style.backgroundImage = `url(${imageData.url})`;
       tile.title = imageData.name;
@@ -667,10 +686,29 @@ async function updateArtistWall(artists, albumArtUrl) {
       tile.style.opacity = '0.4';
     }
     
+    // Re-randomize position/size when animation cycle completes
+    tile.addEventListener('animationiteration', () => {
+      repositionTile(tile);
+    });
+    
     elements.artistWall.appendChild(tile);
   });
   
   return hasRealImages;
+}
+
+// Helper function to set random position and size for a tile
+function repositionTile(tile) {
+  const randomX = Math.random() * 120 - 10; // -10% to 110%
+  const randomY = Math.random() * 120 - 10;
+  const randomSize = Math.random() * 180 + 120; // 120-300px
+  const randomDuration = Math.random() * 7 + 8; // 8-15s cycle
+  
+  tile.style.left = `${randomX}%`;
+  tile.style.top = `${randomY}%`;
+  tile.style.width = `${randomSize}px`;
+  tile.style.height = `${randomSize}px`;
+  tile.style.animationDuration = `${randomDuration}s`;
 }
 
 function startPolling() {
@@ -759,7 +797,7 @@ elements.vizCanvasBtn.addEventListener('click', () => {
 });
 
 elements.vizGeometricBtn.addEventListener('click', () => {
-  visualizationMode = 'geometric';
+  visualizationMode = 'waveform';
   updateVizButtons();
   updateVisualization();
 });
@@ -778,24 +816,34 @@ elements.brandingOpen.addEventListener('click', () => {
 function updateVizButtons() {
   elements.vizAlbumsBtn.classList.toggle('active', visualizationMode === 'albums');
   elements.vizCanvasBtn.classList.toggle('active', visualizationMode === 'canvas');
-  elements.vizGeometricBtn.classList.toggle('active', visualizationMode === 'geometric');
+  elements.vizGeometricBtn.classList.toggle('active', visualizationMode === 'waveform');
 }
 
 function updateVisualization() {
-  // Hide/show based on mode
+  // Hide/show based on mode - mutually exclusive
   if (visualizationMode === 'albums') {
+    // Show floating album covers
     elements.artistWall.parentElement.style.display = 'block';
     elements.canvasVideo.style.display = 'none';
-    stopGeometricPattern();
+    elements.geometricCanvas.style.display = 'none';
+    stopSonicWaveform();
   } else if (visualizationMode === 'canvas') {
+    // Show canvas video
     elements.artistWall.parentElement.style.display = 'none';
     elements.canvasVideo.style.display = 'block';
-    stopGeometricPattern();
-  } else if (visualizationMode === 'geometric') {
+    elements.geometricCanvas.style.display = 'none';
+    stopSonicWaveform();
+    // Try to play video if src is set
+    if (elements.canvasVideo.src) {
+      elements.canvasVideo.play().catch(e => console.log('Video autoplay prevented:', e));
+    }
+  } else if (visualizationMode === 'waveform') {
+    // Show sonic waveform
     elements.artistWall.parentElement.style.display = 'none';
     elements.canvasVideo.style.display = 'none';
+    elements.geometricCanvas.style.display = 'block';
     if (currentBPM) {
-      startGeometricPattern(currentBPM);
+      startSonicWaveform(currentBPM, currentAudioFeatures);
     }
   }
 }
