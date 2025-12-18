@@ -382,7 +382,7 @@ function stringToColor(str) {
   return { hue1, hue2 };
 }
 
-// BPM-synced sonic waveform visualizer
+// Kaleidosync-style audio-reactive visualizer (smooth, not epileptic)
 function startSonicWaveform(bpm, audioFeatures) {
   const canvas = elements.geometricCanvas;
   const ctx = canvas.getContext('2d');
@@ -395,13 +395,36 @@ function startSonicWaveform(bpm, audioFeatures) {
   let startTime = Date.now();
   let frame = 0;
   
-  // Use audio features for color
+  // Use audio features for color (Kaleidosync-style mood mapping)
   const energy = audioFeatures?.energy || 0.5;
   const valence = audioFeatures?.valence || 0.5;
-  const baseHue = (valence * 120) + 180; // 180-300 (cyan to purple)
-  const barCount = 64;
   
-  function drawWaveform() {
+  // Map valence to color (mood-based)
+  let baseHue;
+  if (valence < 0.3) {
+    baseHue = 240; // Blue/purple for sad songs
+  } else if (valence < 0.7) {
+    baseHue = 150; // Green/cyan for neutral
+  } else {
+    baseHue = 30; // Warm orange/yellow for happy songs
+  }
+  
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  const particleCount = 80;
+  const particles = [];
+  
+  // Initialize particles
+  for (let i = 0; i < particleCount; i++) {
+    particles.push({
+      angle: (i / particleCount) * Math.PI * 2,
+      radius: 0,
+      speed: 0.5 + Math.random() * 0.5,
+      size: 2 + Math.random() * 3
+    });
+  }
+  
+  function drawKaleidosync() {
     if (visualizationMode !== 'waveform') {
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
@@ -414,55 +437,65 @@ function startSonicWaveform(bpm, audioFeatures) {
     const beatProgress = (elapsed % beatDuration) / beatDuration;
     const beatPulse = Math.sin(beatProgress * Math.PI * 2) * 0.5 + 0.5;
     
-    // Clear canvas with slight trail effect
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    // Gentle fade for smooth trails (not epileptic)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    const barWidth = canvas.width / barCount;
-    const maxHeight = canvas.height * 0.8;
+    // Rotation speed based on BPM
+    const rotationSpeed = (bpm / 60) * 0.01;
     
-    // Draw frequency bars
-    for (let i = 0; i < barCount; i++) {
-      // Create wave pattern with multiple frequencies
-      const normalizedPosition = i / barCount;
-      const wave1 = Math.sin((frame * 0.02) + (i * 0.1)) * 0.5 + 0.5;
-      const wave2 = Math.sin((frame * 0.03) + (i * 0.15) + beatProgress * Math.PI * 2) * 0.5 + 0.5;
-      const wave3 = Math.sin((frame * 0.01) + (i * 0.05)) * 0.5 + 0.5;
+    // Draw radial particles
+    particles.forEach((particle, i) => {
+      // Update particle position
+      particle.angle += rotationSpeed;
+      particle.radius = (Math.sin(frame * 0.02 + i * 0.1) * 0.5 + 0.5) * Math.min(canvas.width, canvas.height) * 0.4;
       
-      // Combine waves with beat pulse
-      const combinedWave = (wave1 * 0.4 + wave2 * 0.4 + wave3 * 0.2) * (0.7 + beatPulse * 0.3 * energy);
-      const barHeight = combinedWave * maxHeight;
+      const x = centerX + Math.cos(particle.angle) * particle.radius;
+      const y = centerY + Math.sin(particle.angle) * particle.radius;
       
-      const x = i * barWidth;
-      const y = canvas.height - barHeight;
+      // Color shifts based on position and audio features
+      const hue = (baseHue + (i / particleCount) * 120 + frame * 0.3) % 360;
+      const saturation = 70 + (energy * 20);
+      const lightness = 50 + (beatPulse * 15);
+      const alpha = 0.6 + (beatPulse * 0.3);
       
-      // Dynamic color based on position and audio features
-      const hue = (baseHue + (normalizedPosition * 60) + (frame * 0.5)) % 360;
-      const saturation = 60 + (energy * 30);
-      const lightness = 40 + (combinedWave * 20);
+      // Draw particle with glow
+      const size = particle.size * (1 + beatPulse * 0.5 * energy);
       
-      // Create gradient for each bar
-      const gradient = ctx.createLinearGradient(x, y, x, canvas.height);
-      gradient.addColorStop(0, `hsla(${hue}, ${saturation}%, ${lightness + 20}%, 0.9)`);
-      gradient.addColorStop(1, `hsla(${hue}, ${saturation}%, ${lightness}%, 0.3)`);
+      // Outer glow
+      const gradient = ctx.createRadialGradient(x, y, 0, x, y, size * 3);
+      gradient.addColorStop(0, `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`);
+      gradient.addColorStop(0.5, `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha * 0.3})`);
+      gradient.addColorStop(1, `hsla(${hue}, ${saturation}%, ${lightness}%, 0)`);
       
       ctx.fillStyle = gradient;
-      ctx.fillRect(x, y, barWidth - 2, barHeight);
+      ctx.beginPath();
+      ctx.arc(x, y, size * 3, 0, Math.PI * 2);
+      ctx.fill();
       
-      // Add glow effect on peaks
-      if (combinedWave > 0.7) {
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = `hsla(${hue}, ${saturation}%, ${lightness}%, 0.8)`;
-        ctx.fillRect(x, y, barWidth - 2, 3);
-        ctx.shadowBlur = 0;
-      }
-    }
+      // Inner core
+      ctx.fillStyle = `hsla(${hue}, ${saturation}%, ${lightness + 20}%, ${alpha + 0.2})`;
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    
+    // Add center pulse
+    const centerPulseSize = (beatPulse * 80 + 40) * (0.8 + energy * 0.4);
+    const centerGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, centerPulseSize);
+    centerGradient.addColorStop(0, `hsla(${baseHue}, 80%, 60%, ${beatPulse * 0.4})`);
+    centerGradient.addColorStop(1, `hsla(${baseHue}, 80%, 60%, 0)`);
+    
+    ctx.fillStyle = centerGradient;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, centerPulseSize, 0, Math.PI * 2);
+    ctx.fill();
     
     frame++;
-    animationFrameId = requestAnimationFrame(drawWaveform);
+    animationFrameId = requestAnimationFrame(drawKaleidosync);
   }
   
-  drawWaveform();
+  drawKaleidosync();
   
   // Handle window resize
   window.addEventListener('resize', () => {
