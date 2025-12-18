@@ -533,6 +533,12 @@ body.fullscreen-mode {
   flex-shrink: 0;
 }
 
+.branding-logo-img {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
 .branding-text {
   font-size: 14px;
   font-weight: 600;
@@ -575,6 +581,10 @@ body.fullscreen-mode {
     width: 28px;
     height: 28px;
     font-size: 11px;
+  }
+  
+  .branding-logo-img {
+    height: 24px;
   }
   
   .branding-text {
