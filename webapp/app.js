@@ -9,6 +9,8 @@ const SCOPES = ['user-read-currently-playing', 'user-read-playback-state'];
 let pollInterval = null;
 let currentTrackId = null;
 let artistImageCache = new Map();
+let currentBPM = 120; // Default BPM
+let bpmInterval = null;
 
 // DOM Elements
 const screens = {
@@ -272,6 +274,10 @@ async function getArtist(artistId) {
 
 async function getRelatedArtists(artistId) {
   return await makeSpotifyRequest(`/v1/artists/${artistId}/related-artists`);
+}
+
+async function getAudioFeatures(trackId) {
+  return await makeSpotifyRequest(`/v1/audio-features/${trackId}`);
 }
 
 // ===== UI Functions =====
