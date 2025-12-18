@@ -3,7 +3,12 @@ const SPOTIFY_CLIENT_ID = 'YOUR_SPOTIFY_CLIENT_ID_HERE';
 const SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize';
 const SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token';
 const REDIRECT_URI = window.location.origin + window.location.pathname;
-const SCOPES = ['user-read-currently-playing', 'user-read-playback-state'];
+const SCOPES = [
+  'user-read-currently-playing',
+  'user-read-playback-state',
+  'user-modify-playback-state',
+  'streaming'
+];
 
 // UI State Management
 let pollInterval = null;
@@ -35,7 +40,10 @@ const elements = {
   progressFill: document.getElementById('progress-fill'),
   currentTime: document.getElementById('current-time'),
   totalTime: document.getElementById('total-time'),
-  errorMessage: document.getElementById('error-message')
+  errorMessage: document.getElementById('error-message'),
+  playPauseButton: document.getElementById('play-pause-button'),
+  prevButton: document.getElementById('prev-button'),
+  nextButton: document.getElementById('next-button')
 };
 
 // ===== PKCE Helper Functions =====
@@ -280,6 +288,50 @@ async function getAudioFeatures(trackId) {
   return await makeSpotifyRequest(`/v1/audio-features/${trackId}`);
 }
 
+// Playback control functions
+async function playPause() {
+  const { accessToken } = getStoredTokens();
+  const currentState = await makeSpotifyRequest('/v1/me/player');
+  
+  if (currentState.data && currentState.data.is_playing) {
+    // Pause
+    return await fetch('https://api.spotify.com/v1/me/player/pause', {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+  } else {
+    // Play
+    return await fetch('https://api.spotify.com/v1/me/player/play', {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+  }
+}
+
+async function skipNext() {
+  const { accessToken } = getStoredTokens();
+  return await fetch('https://api.spotify.com/v1/me/player/next', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${accessToken}` }
+  });
+}
+
+async function skipPrevious() {
+  const { accessToken } = getStoredTokens();
+  return await fetch('https://api.spotify.com/v1/me/player/previous', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${accessToken}` }
+  });
+}
+
+async function setVolume(volumePercent) {
+  const { accessToken } = getStoredTokens();
+  return await fetch(`https://api.spotify.com/v1/me/player/volume?volume_percent=${volumePercent}`, {
+    method: 'PUT',
+    headers: { 'Authorization': `Bearer ${accessToken}` }
+  });
+}
+
 // ===== UI Functions =====
 
 function showScreen(screenName) {
@@ -354,6 +406,15 @@ function updateUI(data) {
   
   const track = data.item;
   const isNewTrack = currentTrackId !== track.id;
+  
+  // Update play/pause button based on playback state
+  if (data.is_playing) {
+    elements.playPauseButton.textContent = '⏸';
+    elements.playPauseButton.title = 'Pause';
+  } else {
+    elements.playPauseButton.textContent = '▶';
+    elements.playPauseButton.title = 'Play';
+  }
   
   if (isNewTrack) {
     currentTrackId = track.id;
@@ -518,6 +579,35 @@ elements.authButton.addEventListener('click', initiateAuth);
 elements.logoutButton.addEventListener('click', handleLogout);
 elements.retryButton.addEventListener('click', () => {
   initApp();
+});
+
+// Playback control event listeners
+elements.playPauseButton.addEventListener('click', async () => {
+  try {
+    await playPause();
+    // Update immediately to reflect change
+    setTimeout(() => fetchCurrentlyPlaying(), 500);
+  } catch (error) {
+    console.error('Playback control error:', error);
+  }
+});
+
+elements.nextButton.addEventListener('click', async () => {
+  try {
+    await skipNext();
+    setTimeout(() => fetchCurrentlyPlaying(), 500);
+  } catch (error) {
+    console.error('Skip next error:', error);
+  }
+});
+
+elements.prevButton.addEventListener('click', async () => {
+  try {
+    await skipPrevious();
+    setTimeout(() => fetchCurrentlyPlaying(), 500);
+  } catch (error) {
+    console.error('Skip previous error:', error);
+  }
 });
 
 // ===== App Initialization =====
