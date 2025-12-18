@@ -49,7 +49,10 @@ const elements = {
   fullscreenButton: document.getElementById('fullscreen-button'),
   vizAlbumsBtn: document.getElementById('viz-albums'),
   vizCanvasBtn: document.getElementById('viz-canvas'),
-  vizGeometricBtn: document.getElementById('viz-geometric')
+  vizGeometricBtn: document.getElementById('viz-geometric'),
+  brandingBox: document.getElementById('branding-box'),
+  brandingClose: document.getElementById('branding-close'),
+  brandingOpen: document.getElementById('branding-open')
 };
 
 // ===== State Management =====
@@ -532,7 +535,10 @@ function updateUI(data) {
     
     elements.trackName.textContent = track.name;
     elements.artistName.textContent = track.artists.map(a => a.name).join(', ');
-    elements.albumName.textContent = track.album.name;
+    
+    // Add release year to album name
+    const albumYear = track.album.release_date ? track.album.release_date.split('-')[0] : '';
+    elements.albumName.textContent = albumYear ? `${track.album.name} (${albumYear})` : track.album.name;
     
     const albumImage = track.album.images[0]?.url;
     if (albumImage) {
@@ -756,6 +762,17 @@ elements.vizGeometricBtn.addEventListener('click', () => {
   visualizationMode = 'geometric';
   updateVizButtons();
   updateVisualization();
+});
+
+// Branding box show/hide handlers
+elements.brandingClose.addEventListener('click', () => {
+  elements.brandingBox.classList.add('hidden');
+  elements.brandingOpen.style.display = 'flex';
+});
+
+elements.brandingOpen.addEventListener('click', () => {
+  elements.brandingBox.classList.remove('hidden');
+  elements.brandingOpen.style.display = 'none';
 });
 
 function updateVizButtons() {
