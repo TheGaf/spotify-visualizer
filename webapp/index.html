@@ -76,37 +76,46 @@
         
         <!-- Now Playing State -->
         <div id="now-playing" style="display: none;">
+          <!-- BPM-synced geometric pattern canvas (fallback) -->
+          <canvas id="geometric-canvas" class="geometric-canvas"></canvas>
+          
+          <!-- Canvas video background -->
+          <video id="canvas-video" class="canvas-video" autoplay loop muted playsinline style="display: none;"></video>
+          
           <!-- Floating artist images in background -->
           <div id="artist-wall-container" class="artist-wall-wrapper">
             <div id="artist-wall" class="artist-wall"></div>
           </div>
           
-          <!-- Album art centered -->
-          <div id="album-art-overlay" class="album-overlay">
-            <img id="album-art" src="" alt="Album Art">
-          </div>
-          
-          <div class="track-info">
-            <h2 id="track-name"></h2>
-            <h3 id="artist-name"></h3>
-            <p id="album-name"></p>
-          </div>
-          
-          <div class="progress-container">
-            <div class="progress-bar">
-              <div id="progress-fill" class="progress-fill"></div>
+          <!-- Player UI Container (translucent black box) -->
+          <div class="player-container">
+            <!-- Album art centered -->
+            <div id="album-art-overlay" class="album-overlay">
+              <img id="album-art" src="" alt="Album Art">
             </div>
-            <div class="progress-time">
-              <span id="current-time">0:00</span>
-              <span id="total-time">0:00</span>
+            
+            <div class="track-info">
+              <h2 id="track-name"></h2>
+              <h3 id="artist-name"></h3>
+              <p id="album-name"></p>
             </div>
-          </div>
-          
-          <!-- Playback Controls -->
-          <div class="playback-controls">
-            <button id="prev-button" class="control-btn" title="Previous">⏮</button>
-            <button id="play-pause-button" class="control-btn play-btn" title="Play/Pause">▶</button>
-            <button id="next-button" class="control-btn" title="Next">⏭</button>
+            
+            <div class="progress-container">
+              <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill"></div>
+              </div>
+              <div class="progress-time">
+                <span id="current-time">0:00</span>
+                <span id="total-time">0:00</span>
+              </div>
+            </div>
+            
+            <!-- Playback Controls -->
+            <div class="playback-controls">
+              <button id="prev-button" class="control-btn" title="Previous">⏮</button>
+              <button id="play-pause-button" class="control-btn play-btn" title="Play/Pause">▶</button>
+              <button id="next-button" class="control-btn" title="Next">⏭</button>
+            </div>
           </div>
         </div>
       </div>

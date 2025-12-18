@@ -43,7 +43,9 @@ const elements = {
   errorMessage: document.getElementById('error-message'),
   playPauseButton: document.getElementById('play-pause-button'),
   prevButton: document.getElementById('prev-button'),
-  nextButton: document.getElementById('next-button')
+  nextButton: document.getElementById('next-button'),
+  geometricCanvas: document.getElementById('geometric-canvas'),
+  canvasVideo: document.getElementById('canvas-video')
 };
 
 // ===== PKCE Helper Functions =====
@@ -288,6 +290,10 @@ async function getAudioFeatures(trackId) {
   return await makeSpotifyRequest(`/v1/audio-features/${trackId}`);
 }
 
+async function getArtistAlbums(artistId) {
+  return await makeSpotifyRequest(`/v1/artists/${artistId}/albums?limit=20`);
+}
+
 // Playback control functions
 async function playPause() {
   const { accessToken } = getStoredTokens();
@@ -364,6 +370,112 @@ function stringToColor(str) {
   return { hue1, hue2 };
 }
 
+// BPM-synced geometric pattern animation
+function startGeometricPattern(bpm) {
+  const canvas = elements.geometricCanvas;
+  const ctx = canvas.getContext('2d');
+  
+  // Set canvas size
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  
+  const beatDuration = 60000 / bpm; // ms per beat
+  let startTime = Date.now();
+  let frame = 0;
+  
+  function drawPattern() {
+    const elapsed = Date.now() - startTime;
+    const beatProgress = (elapsed % beatDuration) / beatDuration;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw pulsing circles
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    
+    for (let i = 0; i < 5; i++) {
+      const radius = (100 + i * 80) * (1 + beatProgress * 0.3);
+      const opacity = (1 - beatProgress) * (0.3 - i * 0.05);
+      
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.strokeStyle = `hsla(${180 + i * 30}, 70%, 50%, ${opacity})`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    
+    // Draw rotating fractals
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.rotate(frame * 0.01);
+    
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI * 2 * i) / 6;
+      const x = Math.cos(angle) * 200;
+      const y = Math.sin(angle) * 200;
+      
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(x, y);
+      ctx.strokeStyle = `hsla(${200 + i * 40}, 70%, 50%, ${0.4 - beatProgress * 0.2})`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      // Add circle at end
+      ctx.beginPath();
+      ctx.arc(x, y, 10 + beatProgress * 20, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${200 + i * 40}, 70%, 50%, ${0.6 - beatProgress * 0.3})`;
+      ctx.fill();
+    }
+    
+    ctx.restore();
+    
+    frame++;
+    requestAnimationFrame(drawPattern);
+  }
+  
+  drawPattern();
+  
+  // Handle window resize
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+}
+
+function stopGeometricPattern() {
+  const canvas = elements.geometricCanvas;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+async function fetchAndSetupVisualization(trackId, artists, albumImage) {
+  // Fetch BPM
+  try {
+    const audioFeatures = await getAudioFeatures(trackId);
+    if (audioFeatures.data && audioFeatures.data.tempo) {
+      currentBPM = audioFeatures.data.tempo;
+    }
+  } catch (error) {
+    console.error('Failed to fetch audio features:', error);
+  }
+  
+  // Try to get Canvas video (note: may not be available via standard API)
+  // For now, we'll skip Canvas and use artist images + geometric pattern
+  elements.canvasVideo.style.display = 'none';
+  
+  // Update artist wall with images
+  const hasImages = await updateArtistWall(artists, albumImage);
+  
+  // If no images available, show geometric pattern
+  if (!hasImages) {
+    startGeometricPattern(currentBPM);
+  } else {
+    stopGeometricPattern();
+  }
+}
+
 async function fetchCurrentlyPlaying() {
   try {
     const response = await getCurrentlyPlaying();
@@ -428,7 +540,8 @@ function updateUI(data) {
       elements.albumArt.src = albumImage;
     }
     
-    updateArtistWall(track.artists, albumImage);
+    // Fetch BPM and start visualization
+    fetchAndSetupVisualization(track.id, track.artists, albumImage);
   }
   
   updateProgress(data.progress_ms, track.duration_ms);
@@ -446,6 +559,7 @@ async function updateArtistWall(artists, albumArtUrl) {
   
   const images = [];
   const seenArtists = new Set();
+  let hasRealImages = false;
   
   // Fetch artist images
   for (const artist of artists) {
@@ -465,6 +579,7 @@ async function updateArtistWall(artists, albumArtUrl) {
         const imageUrl = response.data.images[0].url;
         artistImageCache.set(artist.id, imageUrl);
         images.push({ url: imageUrl, type: 'image', name: artist.name });
+        hasRealImages = true;
       }
     } catch (error) {
       console.error('Failed to fetch artist:', error);
@@ -486,6 +601,7 @@ async function updateArtistWall(artists, albumArtUrl) {
             const imageUrl = relatedArtist.images[0].url;
             artistImageCache.set(relatedArtist.id, imageUrl);
             images.push({ url: imageUrl, type: 'image', name: relatedArtist.name });
+            hasRealImages = true;
           }
         }
       }
@@ -494,15 +610,28 @@ async function updateArtistWall(artists, albumArtUrl) {
     }
   }
   
-  // Fill remaining slots with fallback
-  while (images.length < 15) {
-    if (albumArtUrl && images.length % 3 === 0) {
-      images.push({ url: albumArtUrl, type: 'blur', name: '' });
-    } else {
-      const artistName = artists[0]?.name || 'Unknown';
-      const initials = artistName.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase();
-      images.push({ type: 'gradient', initials, name: artistName });
+  // Fetch artist albums for additional background images
+  if (artists.length > 0 && images.length < 15) {
+    try {
+      const albumsResponse = await getArtistAlbums(artists[0].id);
+      
+      if (albumsResponse.data && albumsResponse.data.items) {
+        for (const album of albumsResponse.data.items) {
+          if (images.length >= 15) break;
+          if (album.images && album.images.length > 0) {
+            images.push({ url: album.images[0].url, type: 'album', name: album.name });
+            hasRealImages = true;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch artist albums:', error);
     }
+  }
+  
+  // Fill remaining slots with blurred album art (no gradient tiles)
+  while (images.length < 15 && albumArtUrl) {
+    images.push({ url: albumArtUrl, type: 'blur', name: '' });
   }
   
   // Create floating artist images at random positions
@@ -524,29 +653,19 @@ async function updateArtistWall(artists, albumArtUrl) {
     tile.style.animationDelay = `${randomDelay}s`;
     tile.style.animationDuration = `${randomDuration}s`;
     
-    if (imageData.type === 'image') {
+    if (imageData.type === 'image' || imageData.type === 'album') {
       tile.style.backgroundImage = `url(${imageData.url})`;
       tile.title = imageData.name;
     } else if (imageData.type === 'blur') {
       tile.style.backgroundImage = `url(${imageData.url})`;
       tile.style.filter = 'blur(8px)';
       tile.style.opacity = '0.4';
-    } else if (imageData.type === 'gradient') {
-      const colors = stringToColor(imageData.name);
-      tile.style.background = `linear-gradient(135deg, 
-        hsl(${colors.hue1}, 70%, 50%), 
-        hsl(${colors.hue2}, 70%, 30%))`;
-      tile.textContent = imageData.initials;
-      tile.style.display = 'flex';
-      tile.style.alignItems = 'center';
-      tile.style.justifyContent = 'center';
-      tile.style.fontSize = '24px';
-      tile.style.fontWeight = 'bold';
-      tile.title = imageData.name;
     }
     
     elements.artistWall.appendChild(tile);
   });
+  
+  return hasRealImages;
 }
 
 function startPolling() {
