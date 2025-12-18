@@ -18,7 +18,7 @@
     
     body {
       font-family: 'Titillium Web', sans-serif;
-      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      background: #000000;
       color: #fff;
       min-height: 100vh;
       display: flex;
@@ -76,11 +76,14 @@
         
         <!-- Now Playing State -->
         <div id="now-playing" style="display: none;">
+          <!-- Floating artist images in background -->
           <div id="artist-wall-container" class="artist-wall-wrapper">
             <div id="artist-wall" class="artist-wall"></div>
-            <div id="album-art-overlay" class="album-overlay">
-              <img id="album-art" src="" alt="Album Art">
-            </div>
+          </div>
+          
+          <!-- Album art centered -->
+          <div id="album-art-overlay" class="album-overlay">
+            <img id="album-art" src="" alt="Album Art">
           </div>
           
           <div class="track-info">

@@ -6,13 +6,17 @@ body {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  overflow-x: hidden;
+  overflow: hidden;
+  background: #000000;
+  position: relative;
 }
 
 #app {
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
   margin: 0 auto;
+  position: relative;
+  z-index: 10;
 }
 
 .screen {
@@ -52,7 +56,8 @@ body {
 
 /* Player Screen */
 #player-screen {
-  text-align: left;
+  text-align: center;
+  position: relative;
 }
 
 .notice {
@@ -80,48 +85,63 @@ body {
   font-size: 16px;
 }
 
-/* Artist Wall Container */
+/* Artist Wall Container - Now fullscreen background */
 .artist-wall-wrapper {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1;
-  margin-bottom: 20px;
-  border-radius: 10px;
-  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .artist-wall {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: 2px;
+  position: relative;
   width: 100%;
   height: 100%;
 }
 
 .artist-tile {
+  position: absolute;
   background-size: cover;
   background-position: center;
-  background-color: rgba(255, 255, 255, 0.1);
-  transition: transform 0.3s ease;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  opacity: 0;
+  animation: floatInOut 8s ease-in-out infinite;
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
 }
 
-.artist-tile:hover {
-  transform: scale(1.05);
-  z-index: 1;
+@keyframes floatInOut {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.8);
+  }
+  20% {
+    opacity: 0.7;
+    transform: translate(0, 0) scale(1);
+  }
+  80% {
+    opacity: 0.7;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.8);
+  }
 }
 
-/* Album Art Overlay */
+/* Album Art Overlay - Now centered on screen */
 .album-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 60%;
-  height: 60%;
-  border-radius: 10px;
+  position: relative;
+  width: 400px;
+  height: 400px;
+  margin: 0 auto 30px auto;
+  border-radius: 15px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.8);
+  z-index: 10;
 }
 
 #album-art {
@@ -133,31 +153,30 @@ body {
 /* Track Info */
 .track-info {
   margin-bottom: 20px;
+  text-align: center;
+  z-index: 10;
+  position: relative;
 }
 
 .track-info h2 {
-  font-size: 22px;
-  margin-bottom: 8px;
+  font-size: 26px;
+  margin-bottom: 10px;
   font-weight: 700;
 }
 
 .track-info h3 {
-  font-size: 18px;
-  margin-bottom: 5px;
+  font-size: 20px;
+  margin-bottom: 8px;
   opacity: 0.9;
   font-weight: 600;
 }
 
 .track-info p {
-  font-size: 14px;
+  font-size: 16px;
   opacity: 0.7;
 }
 
 /* Progress Bar */
-.progress-container {
-  margin-bottom: 20px;
-}
-
 .progress-bar {
   width: 100%;
   height: 6px;
@@ -184,14 +203,20 @@ body {
 .logout-button {
   background: rgba(255, 255, 255, 0.1);
   color: inherit;
-  width: 100%;
-  padding: 10px;
-  font-size: 14px;
+  padding: 6px 16px;
+  font-size: 12px;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  border-radius: 20px;
 }
 
 .logout-button:hover {
   background: rgba(255, 255, 255, 0.2);
+  transform: translateX(-50%) translateY(-2px);
 }
 
 /* Error Screen */
@@ -218,14 +243,46 @@ body {
   background: #357abd;
 }
 
+/* Progress Bar - Center aligned */
+.progress-container {
+  margin-bottom: 80px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* Responsive Design */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   #app {
     max-width: 100%;
   }
   
   #auth-screen h1 {
     font-size: 24px;
+  }
+  
+  .album-overlay {
+    width: 300px;
+    height: 300px;
+  }
+  
+  .track-info h2 {
+    font-size: 22px;
+  }
+  
+  .track-info h3 {
+    font-size: 18px;
+  }
+  
+  .track-info p {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .album-overlay {
+    width: 250px;
+    height: 250px;
   }
   
   .track-info h2 {

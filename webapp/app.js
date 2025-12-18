@@ -405,13 +405,13 @@ async function updateArtistWall(artists, albumArtUrl) {
   }
   
   // Fetch related artists
-  if (artists.length > 0 && images.length < 9) {
+  if (artists.length > 0 && images.length < 15) {
     try {
       const response = await getRelatedArtists(artists[0].id);
       
       if (response.data && response.data.artists) {
         for (const relatedArtist of response.data.artists) {
-          if (images.length >= 9) break;
+          if (images.length >= 15) break;
           if (seenArtists.has(relatedArtist.id)) continue;
           seenArtists.add(relatedArtist.id);
           
@@ -428,8 +428,8 @@ async function updateArtistWall(artists, albumArtUrl) {
   }
   
   // Fill remaining slots with fallback
-  while (images.length < 9) {
-    if (albumArtUrl && images.length % 2 === 0) {
+  while (images.length < 15) {
+    if (albumArtUrl && images.length % 3 === 0) {
       images.push({ url: albumArtUrl, type: 'blur', name: '' });
     } else {
       const artistName = artists[0]?.name || 'Unknown';
@@ -438,16 +438,24 @@ async function updateArtistWall(artists, albumArtUrl) {
     }
   }
   
-  // Shuffle images for variety
-  for (let i = images.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [images[i], images[j]] = [images[j], images[i]];
-  }
-  
-  // Create grid items
-  images.slice(0, 9).forEach(imageData => {
+  // Create floating artist images at random positions
+  images.slice(0, 15).forEach((imageData, index) => {
     const tile = document.createElement('div');
     tile.className = 'artist-tile';
+    
+    // Random position across the screen
+    const randomX = Math.random() * 80 + 10; // 10-90% of screen width
+    const randomY = Math.random() * 80 + 10; // 10-90% of screen height
+    const randomSize = Math.random() * 150 + 100; // 100-250px
+    const randomDelay = Math.random() * 8; // 0-8s delay
+    const randomDuration = Math.random() * 4 + 6; // 6-10s duration
+    
+    tile.style.left = `${randomX}%`;
+    tile.style.top = `${randomY}%`;
+    tile.style.width = `${randomSize}px`;
+    tile.style.height = `${randomSize}px`;
+    tile.style.animationDelay = `${randomDelay}s`;
+    tile.style.animationDuration = `${randomDuration}s`;
     
     if (imageData.type === 'image') {
       tile.style.backgroundImage = `url(${imageData.url})`;
@@ -455,7 +463,7 @@ async function updateArtistWall(artists, albumArtUrl) {
     } else if (imageData.type === 'blur') {
       tile.style.backgroundImage = `url(${imageData.url})`;
       tile.style.filter = 'blur(8px)';
-      tile.style.opacity = '0.6';
+      tile.style.opacity = '0.4';
     } else if (imageData.type === 'gradient') {
       const colors = stringToColor(imageData.name);
       tile.style.background = `linear-gradient(135deg, 
