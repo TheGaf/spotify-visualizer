@@ -702,7 +702,7 @@ function repositionTile(tile) {
   const randomX = Math.random() * 120 - 10; // -10% to 110%
   const randomY = Math.random() * 120 - 10;
   const randomSize = Math.random() * 180 + 120; // 120-300px
-  const randomDuration = Math.random() * 7 + 8; // 8-15s cycle
+  const randomDuration = Math.random() * 8 + 12; // 12-20s cycle (increased minimum)
   
   tile.style.left = `${randomX}%`;
   tile.style.top = `${randomY}%`;
@@ -828,15 +828,14 @@ function updateVisualization() {
     elements.geometricCanvas.style.display = 'none';
     stopSonicWaveform();
   } else if (visualizationMode === 'canvas') {
-    // Show canvas video
-    elements.artistWall.parentElement.style.display = 'none';
-    elements.canvasVideo.style.display = 'block';
-    elements.geometricCanvas.style.display = 'none';
-    stopSonicWaveform();
-    // Try to play video if src is set
-    if (elements.canvasVideo.src) {
-      elements.canvasVideo.play().catch(e => console.log('Video autoplay prevented:', e));
-    }
+    // Show canvas video (Note: Spotify Canvas videos require partner API access, not available in standard Web API)
+    // If Canvas becomes available, this mode will display it. For now, falls back to albums.
+    console.log('Canvas video mode selected, but Spotify Canvas requires partner API access');
+    // Fallback to albums mode since Canvas isn't available
+    visualizationMode = 'albums';
+    elements.vizAlbumsBtn.classList.add('active');
+    elements.vizCanvasBtn.classList.remove('active');
+    updateVisualization(); // Recursively call with albums mode
   } else if (visualizationMode === 'waveform') {
     // Show sonic waveform
     elements.artistWall.parentElement.style.display = 'none';

@@ -299,16 +299,15 @@ body.fullscreen-mode {
   transform: scale(0.95);
 }
 
-/* Visualization Mode Controls - Floating transparent */
-.viz-controls {
-  position: relative;
-  z-index: 10;
+/* Visualization Mode Controls - Fixed above branding box */
+.viz-controls-fixed {
+  position: fixed;
+  bottom: 90px;
+  left: 20px;
+  z-index: 100;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  margin: 15px auto;
-  padding-top: 15px;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .viz-btn {
@@ -621,5 +620,16 @@ body.fullscreen-mode {
     width: 22px;
     height: 22px;
     font-size: 16px;
+  }
+  
+  .viz-controls-fixed {
+    bottom: 80px;
+    left: 15px;
+  }
+  
+  .viz-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
   }
 }
