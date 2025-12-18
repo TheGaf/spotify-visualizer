@@ -1,5 +1,5 @@
 // Spotify OAuth Configuration
-const SPOTIFY_CLIENT_ID = 'YOUR_SPOTIFY_CLIENT_ID_HERE';
+const SPOTIFY_CLIENT_ID = 'a643758462b24eb0933391284696b322';
 const SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize';
 const SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token';
 const REDIRECT_URI = window.location.origin + window.location.pathname;
@@ -45,8 +45,15 @@ const elements = {
   prevButton: document.getElementById('prev-button'),
   nextButton: document.getElementById('next-button'),
   geometricCanvas: document.getElementById('geometric-canvas'),
-  canvasVideo: document.getElementById('canvas-video')
+  canvasVideo: document.getElementById('canvas-video'),
+  fullscreenButton: document.getElementById('fullscreen-button'),
+  vizAlbumsBtn: document.getElementById('viz-albums'),
+  vizCanvasBtn: document.getElementById('viz-canvas'),
+  vizGeometricBtn: document.getElementById('viz-geometric')
 };
+
+// ===== State Management =====
+let visualizationMode = 'albums'; // 'albums', 'canvas', or 'geometric'
 
 // ===== PKCE Helper Functions =====
 
@@ -461,19 +468,11 @@ async function fetchAndSetupVisualization(trackId, artists, albumImage) {
     console.error('Failed to fetch audio features:', error);
   }
   
-  // Try to get Canvas video (note: may not be available via standard API)
-  // For now, we'll skip Canvas and use artist images + geometric pattern
-  elements.canvasVideo.style.display = 'none';
+  // Always update artist wall (for when user switches to album mode)
+  await updateArtistWall(artists, albumImage);
   
-  // Update artist wall with images
-  const hasImages = await updateArtistWall(artists, albumImage);
-  
-  // If no images available, show geometric pattern
-  if (!hasImages) {
-    startGeometricPattern(currentBPM);
-  } else {
-    stopGeometricPattern();
-  }
+  // Apply current visualization mode
+  updateVisualization();
 }
 
 async function fetchCurrentlyPlaying() {
@@ -639,10 +638,10 @@ async function updateArtistWall(artists, albumArtUrl) {
     const tile = document.createElement('div');
     tile.className = 'artist-tile';
     
-    // Random position across the screen
-    const randomX = Math.random() * 80 + 10; // 10-90% of screen width
-    const randomY = Math.random() * 80 + 10; // 10-90% of screen height
-    const randomSize = Math.random() * 150 + 100; // 100-250px
+    // Random position across the screen (can go off-screen)
+    const randomX = Math.random() * 120 - 10; // -10% to 110% of screen width
+    const randomY = Math.random() * 120 - 10; // -10% to 110% of screen height
+    const randomSize = Math.random() * 180 + 120; // 120-300px (larger)
     const randomDelay = Math.random() * 8; // 0-8s delay
     const randomDuration = Math.random() * 4 + 6; // 6-10s duration
     
@@ -728,6 +727,61 @@ elements.prevButton.addEventListener('click', async () => {
     console.error('Skip previous error:', error);
   }
 });
+
+// Fullscreen button
+elements.fullscreenButton.addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+    document.body.classList.add('fullscreen-mode');
+  } else {
+    document.exitFullscreen();
+    document.body.classList.remove('fullscreen-mode');
+  }
+});
+
+// Visualization mode buttons
+elements.vizAlbumsBtn.addEventListener('click', () => {
+  visualizationMode = 'albums';
+  updateVizButtons();
+  updateVisualization();
+});
+
+elements.vizCanvasBtn.addEventListener('click', () => {
+  visualizationMode = 'canvas';
+  updateVizButtons();
+  updateVisualization();
+});
+
+elements.vizGeometricBtn.addEventListener('click', () => {
+  visualizationMode = 'geometric';
+  updateVizButtons();
+  updateVisualization();
+});
+
+function updateVizButtons() {
+  elements.vizAlbumsBtn.classList.toggle('active', visualizationMode === 'albums');
+  elements.vizCanvasBtn.classList.toggle('active', visualizationMode === 'canvas');
+  elements.vizGeometricBtn.classList.toggle('active', visualizationMode === 'geometric');
+}
+
+function updateVisualization() {
+  // Hide/show based on mode
+  if (visualizationMode === 'albums') {
+    elements.artistWall.parentElement.style.display = 'block';
+    elements.canvasVideo.style.display = 'none';
+    stopGeometricPattern();
+  } else if (visualizationMode === 'canvas') {
+    elements.artistWall.parentElement.style.display = 'none';
+    elements.canvasVideo.style.display = 'block';
+    stopGeometricPattern();
+  } else if (visualizationMode === 'geometric') {
+    elements.artistWall.parentElement.style.display = 'none';
+    elements.canvasVideo.style.display = 'none';
+    if (currentBPM) {
+      startGeometricPattern(currentBPM);
+    }
+  }
+}
 
 // ===== App Initialization =====
 
