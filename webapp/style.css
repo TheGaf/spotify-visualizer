@@ -1,0 +1,635 @@
+/* Web App Styles - Responsive and standalone */
+
+body {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+  background: #000000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  margin: 0;
+}
+
+body.fullscreen-mode {
+  padding: 0;
+}
+
+#app {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 10;
+}
+
+.screen {
+  text-align: center;
+}
+
+/* Auth Screen */
+#auth-screen h1 {
+  margin-bottom: 15px;
+  font-size: 28px;
+}
+
+#auth-screen p {
+  margin-bottom: 20px;
+  opacity: 0.9;
+  font-size: 16px;
+}
+
+#auth-button {
+  background: #1DB954;
+  color: white;
+  font-weight: 600;
+  padding: 12px 30px;
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+#auth-button:hover {
+  background: #1ed760;
+}
+
+/* Loading Screen */
+#loading-screen h2 {
+  font-size: 24px;
+  margin-top: 40px;
+}
+
+/* Player Screen */
+#player-screen {
+  text-align: center;
+  position: relative;
+}
+
+.notice {
+  background: rgba(255, 193, 7, 0.2);
+  border: 1px solid rgba(255, 193, 7, 0.5);
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+/* Idle State */
+.idle-state {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.idle-state h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.idle-state p {
+  opacity: 0.8;
+  font-size: 16px;
+}
+
+/* Geometric Pattern Canvas (fallback background) - Fullscreen */
+.geometric-canvas {
+  position: fixed;
+  top: -10%;
+  left: -10%;
+  width: 120vw;
+  height: 120vh;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Canvas Video Background - Fullscreen */
+.canvas-video {
+  position: fixed;
+  top: -10%;
+  left: -10%;
+  width: 120vw;
+  height: 120vh;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Artist Wall Container - Now fullscreen background, can overflow */
+.artist-wall-wrapper {
+  position: fixed;
+  top: -10%;
+  left: -10%;
+  width: 120vw;
+  height: 120vh;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.artist-wall {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.artist-tile {
+  position: absolute;
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  opacity: 0;
+  animation: floatInOut 8s ease-in-out infinite;
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+}
+
+/* Continuous cycling animation - fade in, stay, fade out, reposition */
+@keyframes fadeInOutCycle {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  20% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  80% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+.artist-tile {
+  animation: fadeInOutCycle 10s ease-in-out infinite;
+}
+
+/* Album Art Overlay - Centered, no container box */
+.album-overlay {
+  position: relative;
+  z-index: 10;
+  width: 280px;
+  height: 280px;
+  margin: 0 auto 20px auto;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.8);
+}
+
+#album-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Track Info - Floating transparent with shadows for contrast */
+.track-info {
+  position: relative;
+  z-index: 10;
+  margin-bottom: 15px;
+  text-align: center;
+  max-width: 450px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.track-info h2 {
+  font-size: 20px;
+  margin-bottom: 6px;
+  font-weight: 700;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 0, 0, 0.7);
+}
+
+.track-info h3 {
+  font-size: 16px;
+  margin-bottom: 4px;
+  opacity: 0.9;
+  font-weight: 600;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 0, 0, 0.7);
+}
+
+.track-info p {
+  font-size: 13px;
+  opacity: 0.7;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+/* Progress Bar - Transparent floating */
+.progress-container {
+  position: relative;
+  z-index: 10;
+  max-width: 450px;
+  margin: 0 auto 15px auto;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.progress-fill {
+  height: 100%;
+  background: #1DB954;
+  transition: width 0.5s linear;
+  box-shadow: 0 0 10px rgba(29, 185, 84, 0.5);
+}
+
+.progress-time {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  opacity: 0.7;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+/* Playback Controls - Floating transparent */
+.playback-controls {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin: 15px auto;
+}
+
+.control-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.control-btn.play-btn {
+  width: 48px;
+  height: 48px;
+  font-size: 20px;
+  background: rgba(29, 185, 84, 0.2);
+  border-color: #1DB954;
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.control-btn.play-btn:hover {
+  background: rgba(29, 185, 84, 0.4);
+}
+
+.control-btn:active {
+  transform: scale(0.95);
+}
+
+/* Visualization Mode Controls - Fixed above branding box */
+.viz-controls-fixed {
+  position: fixed;
+  bottom: 90px;
+  left: 20px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.viz-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viz-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.viz-btn.active {
+  background: rgba(29, 185, 84, 0.3);
+  border-color: #1DB954;
+}
+
+/* Fullscreen Button */
+.fullscreen-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px;
+  font-size: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.fullscreen-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+/* Logout Button */
+.logout-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+  padding: 6px 16px;
+  font-size: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  border-radius: 20px;
+}
+
+.logout-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateX(-50%) translateY(-2px);
+}
+
+/* Error Screen */
+#error-screen h2 {
+  font-size: 24px;
+  margin-bottom: 15px;
+  color: #ff6b6b;
+}
+
+#error-message {
+  margin-bottom: 20px;
+  opacity: 0.8;
+  font-size: 16px;
+}
+
+#retry-button {
+  background: #4a90e2;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+#retry-button:hover {
+  background: #357abd;
+}
+
+/* Progress Bar - More compact */
+.progress-container {
+  margin-bottom: 15px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  #app {
+    max-width: 100%;
+  }
+  
+  #auth-screen h1 {
+    font-size: 24px;
+  }
+  
+  .album-overlay {
+    width: 240px;
+    height: 240px;
+  }
+  
+  .track-info {
+    max-width: 90%;
+  }
+  
+  .track-info h2 {
+    font-size: 18px;
+  }
+  
+  .track-info h3 {
+    font-size: 15px;
+  }
+  
+  .track-info p {
+    font-size: 12px;
+  }
+  
+  .progress-container {
+    max-width: 90%;
+  }
+}
+
+@media (max-width: 480px) {
+  
+  .album-overlay {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .track-info h2 {
+    font-size: 16px;
+  }
+  
+  .track-info h3 {
+    font-size: 14px;
+  }
+  
+  .control-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+  
+  .control-btn.play-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+}
+
+/* Bryan Gaffin Branding Box */
+.branding-box {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.branding-box.hidden {
+  transform: translateX(-120%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.branding-close {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.branding-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.branding-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: white;
+  transition: opacity 0.2s ease;
+}
+
+.branding-link:hover {
+  opacity: 0.8;
+}
+
+.branding-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1DB954, #1ed760);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 12px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.branding-logo-img {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
+.branding-divider {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 16px;
+  font-weight: 300;
+}
+
+.spotify-logo {
+  height: 26px;
+  width: 26px;
+  flex-shrink: 0;
+}
+
+.branding-text {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.branding-open {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0 8px 8px 0;
+  width: 32px;
+  height: 44px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.branding-open:hover {
+  background: rgba(0, 0, 0, 1);
+  transform: translateX(5px);
+}
+
+@media (max-width: 768px) {
+  .branding-box {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  
+  .branding-logo {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+  
+  .branding-logo-img {
+    height: 24px;
+  }
+  
+  .branding-text {
+    font-size: 12px;
+  }
+  
+  .branding-close {
+    width: 22px;
+    height: 22px;
+    font-size: 16px;
+  }
+  
+  .viz-controls-fixed {
+    bottom: 80px;
+    left: 15px;
+  }
+  
+  .viz-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+}

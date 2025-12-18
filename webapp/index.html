@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify Now Playing - Gaf Edition</title>
+  <link rel="stylesheet" href="https://gaf.nyc/gafstandard.css" onerror="this.onerror=null; document.getElementById('fallback-styles').disabled=false;">
+  <link rel="stylesheet" href="style.css">
+  <style id="fallback-styles" disabled>
+    /* Fallback styles with Titillium font */
+    @import url('https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Titillium Web', sans-serif;
+      background: #000000;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    h1, h2, h3 {
+      font-weight: 700;
+    }
+    
+    button {
+      font-family: 'Titillium Web', sans-serif;
+      cursor: pointer;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="screen" style="display: none;">
+      <h1>Spotify Now Playing</h1>
+      <p>Connect your Spotify account to see what's playing.</p>
+      <button id="auth-button">Connect to Spotify</button>
+    </div>
+    
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="screen" style="display: none;">
+      <h2>Loading...</h2>
+    </div>
+    
+    <!-- Player Screen -->
+    <div id="player-screen" class="screen" style="display: none;">
+      <div id="rate-limit-notice" class="notice" style="display: none;">
+        <p>⚠️ Rate limited. Please wait a moment.</p>
+      </div>
+      
+      <div id="player-content">
+        <!-- Idle State -->
+        <div id="idle-state" class="idle-state" style="display: none;">
+          <h2>No music playing</h2>
+          <p>Start playing something on Spotify to see it here!</p>
+        </div>
+        
+        <!-- Now Playing State -->
+        <div id="now-playing" style="display: none;">
+          <!-- BPM-synced geometric pattern canvas (fallback) -->
+          <canvas id="geometric-canvas" class="geometric-canvas"></canvas>
+          
+          <!-- Canvas video background -->
+          <video id="canvas-video" class="canvas-video" autoplay loop muted playsinline style="display: none;"></video>
+          
+          <!-- Floating artist images in background -->
+          <div id="artist-wall-container" class="artist-wall-wrapper">
+            <div id="artist-wall" class="artist-wall"></div>
+          </div>
+          
+          <!-- Player UI (no container box, transparent floating) -->
+          <!-- Album art centered -->
+          <div id="album-art-overlay" class="album-overlay">
+            <img id="album-art" src="" alt="Album Art">
+          </div>
+          
+          <div class="track-info">
+            <h2 id="track-name"></h2>
+            <h3 id="artist-name"></h3>
+            <p id="album-name"></p>
+          </div>
+          
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <div class="progress-time">
+              <span id="current-time">0:00</span>
+              <span id="total-time">0:00</span>
+            </div>
+          </div>
+          
+          <!-- Playback Controls -->
+          <div class="playback-controls">
+            <button id="prev-button" class="control-btn" title="Previous">⏮</button>
+            <button id="play-pause-button" class="control-btn play-btn" title="Play/Pause">▶</button>
+            <button id="next-button" class="control-btn" title="Next">⏭</button>
+          </div>
+        </div>
+      </div>
+      
+      <button id="fullscreen-button" class="fullscreen-button" title="Fullscreen">⛶</button>
+      <button id="logout-button" class="logout-button">Logout</button>
+      
+      <!-- Visualization Mode Controls (above branding) -->
+      <div class="viz-controls-fixed">
+        <button id="viz-albums" class="viz-btn active" title="Album Covers">🖼️</button>
+        <button id="viz-canvas" class="viz-btn" title="Canvas Video">📹</button>
+        <button id="viz-geometric" class="viz-btn" title="Sonic Waveform">🎵</button>
+      </div>
+      
+      <!-- Bryan Gaffin Branding Box with Spotify Logo -->
+      <div id="branding-box" class="branding-box">
+        <button id="branding-close" class="branding-close" title="Hide">×</button>
+        <a href="https://gaf.nyc" target="_blank" rel="noopener noreferrer" class="branding-link">
+          <img src="https://gaf.nyc/BGtitle.svg" alt="Bryan Gaffin" class="branding-logo-img">
+        </a>
+        <span class="branding-divider">×</span>
+        <a href="https://spotify.com" target="_blank" rel="noopener noreferrer" class="branding-link">
+          <svg class="spotify-logo" viewBox="0 0 24 24" fill="#1DB954">
+            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+          </svg>
+        </a>
+      </div>
+      <button id="branding-open" class="branding-open" style="display: none;" title="Show branding">&lt;</button>
+    </div>
+    
+    <!-- Error Screen -->
+    <div id="error-screen" class="screen" style="display: none;">
+      <h2>Error</h2>
+      <p id="error-message"></p>
+      <button id="retry-button">Retry</button>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+</body>
+</html>

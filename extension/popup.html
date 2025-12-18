@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify Now Playing</title>
+  <link rel="stylesheet" href="https://gaf.nyc/gafstandard.css" onerror="this.onerror=null; document.getElementById('fallback-styles').disabled=false;">
+  <link rel="stylesheet" href="popup.css">
+  <style id="fallback-styles" disabled>
+    /* Fallback styles with Titillium font */
+    @import url('https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Titillium Web', sans-serif;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: #fff;
+      width: 400px;
+      min-height: 500px;
+      padding: 20px;
+    }
+    
+    h1, h2, h3 {
+      font-weight: 700;
+    }
+    
+    button {
+      font-family: 'Titillium Web', sans-serif;
+      cursor: pointer;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="screen" style="display: none;">
+      <h1>Spotify Now Playing</h1>
+      <p>Connect your Spotify account to see what's playing.</p>
+      <button id="auth-button">Connect to Spotify</button>
+    </div>
+    
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="screen" style="display: none;">
+      <h2>Loading...</h2>
+    </div>
+    
+    <!-- Player Screen -->
+    <div id="player-screen" class="screen" style="display: none;">
+      <div id="rate-limit-notice" class="notice" style="display: none;">
+        <p>⚠️ Rate limited. Please wait a moment.</p>
+      </div>
+      
+      <div id="player-content">
+        <!-- Idle State -->
+        <div id="idle-state" class="idle-state" style="display: none;">
+          <h2>No music playing</h2>
+          <p>Start playing something on Spotify to see it here!</p>
+        </div>
+        
+        <!-- Now Playing State -->
+        <div id="now-playing" style="display: none;">
+          <div id="artist-wall-container" class="artist-wall-wrapper">
+            <div id="artist-wall" class="artist-wall"></div>
+            <div id="album-art-overlay" class="album-overlay">
+              <img id="album-art" src="" alt="Album Art">
+            </div>
+          </div>
+          
+          <div class="track-info">
+            <h2 id="track-name"></h2>
+            <h3 id="artist-name"></h3>
+            <p id="album-name"></p>
+          </div>
+          
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <div class="progress-time">
+              <span id="current-time">0:00</span>
+              <span id="total-time">0:00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <button id="logout-button" class="logout-button">Logout</button>
+    </div>
+    
+    <!-- Error Screen -->
+    <div id="error-screen" class="screen" style="display: none;">
+      <h2>Error</h2>
+      <p id="error-message"></p>
+      <button id="retry-button">Retry</button>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

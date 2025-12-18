@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Spotify Now Playing - Gaf Edition",
+  "version": "1.0.0",
+  "description": "Display Spotify's Now Playing information with Gaf-branded UI and artist photo wall",
+  "permissions": [
+    "storage",
+    "identity"
+  ],
+  "host_permissions": [
+    "https://api.spotify.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "oauth2": {
+    "client_id": "YOUR_SPOTIFY_CLIENT_ID_HERE",
+    "scopes": [
+      "user-read-currently-playing",
+      "user-read-playback-state"
+    ]
+  }
+}
